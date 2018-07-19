@@ -29,13 +29,13 @@ class Migration(migrations.Migration):
                 ('source', models.CharField(max_length=30)),
                 ('bits_differ', models.IntegerField(blank=True, null=True)),
                 ('hash', models.BigIntegerField()),
-                ('nearest_duplicate', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='nearest_reverse', to='simhash_django.SimHash')),
+                ('nearest_duplicate', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='nearest_reverse', to='simhash_app.SimHash')),
             ],
         ),
         migrations.AddField(
             model_name='permutation',
             name='sim_hash',
-            field=models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='permutations', to='simhash_django.SimHash'),
+            field=models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='permutations', to='simhash_app.SimHash'),
         ),
         migrations.AlterUniqueTogether(
             name='simhash',

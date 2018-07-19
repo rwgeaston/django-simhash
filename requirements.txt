@@ -1,5 +1,0 @@
-Django==2.0.6
-djangorestframework==3.8.2
-pylint==1.9.2
-psycopg2
-git+git://github.com/scrapinghub/python-simhash

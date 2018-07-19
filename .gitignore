@@ -5,3 +5,5 @@ app/db.sqlite3
 *local_settings.py
 app/gunicorn*.log
 */static/*
+dist/
+django_simhash.egg-info/

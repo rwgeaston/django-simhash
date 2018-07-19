@@ -35,7 +35,7 @@ class SimHash(models.Model):
             ('guid', 'source', 'method'),
         )
 
-    def save(self, **kwargs):
+    def save(self, **kwargs):  # pylint: disable=arguments-differ
         permutations = self.generate_permutations()
         response = super().save(**kwargs)
         for permutation in permutations:
@@ -98,7 +98,8 @@ class SimHash(models.Model):
             .filter(bits_rotated=permutation_num)
             .filter(hash__gt=hash_permutation)
             .order_by('hash')
-         ).first()
+            .first()
+        )
 
         if closest_above:
             distance = hamming_distance(hash_permutation, closest_above.hash)
@@ -112,7 +113,8 @@ class SimHash(models.Model):
             .filter(bits_rotated=permutation_num)
             .filter(hash__lt=hash_permutation)
             .order_by('-hash')
-         ).first()
+            .first()
+        )
 
         if closest_below:
             distance = hamming_distance(hash_permutation, closest_below.hash)

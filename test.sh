@@ -1,7 +1,7 @@
 #!/bin/bash
 ln -sf "$PWD/test.sh" .git/hooks/pre-commit
 
-(cd app; pylint app);
+pylint simhash_app;
 rc=$?;
 if [[ $rc != 0 ]];
 then

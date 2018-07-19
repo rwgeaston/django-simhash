@@ -1,11 +1,11 @@
 from rest_framework import viewsets
 
-from simhash_django.models import SimHash
-from simhash_django.calculate_simhash import calculate_simhash
+from .models import SimHash
+from .calculate_simhash import calculate_simhash
 from .serializers import SimHashSerializer
 
 
-class HashViewSet(viewsets.ModelViewSet):
+class HashViewSet(viewsets.ModelViewSet):  # pylint: disable=too-many-ancestors
 
     queryset = SimHash.objects.all()
     serializer_class = SimHashSerializer

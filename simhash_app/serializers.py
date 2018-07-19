@@ -1,8 +1,6 @@
 from rest_framework import serializers
 
-from simhash_django.models import (
-    SimHash,
-)
+from .models import SimHash
 
 
 class SimHashSerializer(serializers.ModelSerializer):
