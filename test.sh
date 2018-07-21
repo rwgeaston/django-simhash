@@ -9,5 +9,13 @@ then
     exit $rc;
 fi
 
+pylint test;
+rc=$?;
+if [[ $rc != 0 ]];
+then
+    echo "Fix pylint"
+    exit $rc;
+fi
+
 echo "Tests pass";
 exit 0;
