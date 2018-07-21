@@ -1,16 +1,16 @@
 from django.db import models
 
 from simhash import hamming_distance
-
-highest_bit = 1 << 63
+from .calculate_simhash import hash_length
+from .calculate_simhash import highest_value
 
 
 def rotate_bits(num):
     response = (num >> 1)
     if num > 0 and num % 2 == 1:
-        response -= highest_bit
+        response -= highest_value
     elif num < 0 and num % 2 == 0:
-        response += highest_bit
+        response += highest_value
     return response
 
 
@@ -52,13 +52,13 @@ class SimHash(models.Model):
         permutations = []
         hash_permutation = self.hash
         closest_match = None
-        bits_differ = 65
+        bits_differ = hash_length + 1
 
         perfect_match = (
             SimHash.objects
             .filter(source=self.source)
             .filter(method=self.method)
-            .filter(hash=self.hash - highest_bit)
+            .filter(hash=self.hash - highest_value)
         )
 
         if self.pk:
@@ -70,7 +70,7 @@ class SimHash(models.Model):
             closest_match = perfect_match
             bits_differ = 0
 
-        for permutation_num in range(64):
+        for permutation_num in range(hash_length):
             if bits_differ > 1:  # it won't get any better if it's 0 or 1
                 closest_match, bits_differ = self.find_closest_permutation(
                     closest_match, bits_differ,
