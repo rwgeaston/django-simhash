@@ -9,6 +9,7 @@ class HashViewSet(viewsets.ModelViewSet):  # pylint: disable=too-many-ancestors
 
     queryset = SimHash.objects.all()
     serializer_class = SimHashSerializer
+    lookup_field = 'guid'
 
     def create(self, request, *args, **kwargs):
         calculate_simhash(request.data)
