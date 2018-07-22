@@ -30,20 +30,34 @@ class SimHash(models.Model):
     bits_differ = models.IntegerField(blank=True, null=True)  # compared to above duplicate
     hash = models.BigIntegerField()
 
+    # If we are saving this because we found it's a near duplicate while saving something else
+    # then we don't want to get into an infinite loop of saving the same two over and over
+    needs_related_check = True
+
+    # Dict or list of SimHashes which need to be re-saved because this one is being resaved
+    related_needs_save = tuple()
+
     class Meta:
         unique_together = (
             ('guid', 'source', 'method'),
         )
 
     def save(self, **kwargs):  # pylint: disable=arguments-differ
-        permutations = self.generate_permutations()
+        new_permutations = []
+        self.related_needs_save = {}
+        if self.needs_related_check:
+            new_permutations = self.generate_permutations()
+
         response = super().save(**kwargs)
-        for permutation in permutations:
+
+        for permutation in new_permutations:
             permutation.sim_hash = self
             permutation.save()
 
-        if self.nearest_duplicate and self.nearest_duplicate.bits_differ > self.bits_differ:
-            self.nearest_duplicate.save()
+        for sim_hash in self.related_needs_save.values():
+            if sim_hash:
+                sim_hash.nearest_duplicate = self
+                sim_hash.save()
 
         return response
 
@@ -71,11 +85,10 @@ class SimHash(models.Model):
             bits_differ = 0
 
         for permutation_num in range(hash_length):
-            if bits_differ > 1:  # it won't get any better if it's 0 or 1
-                closest_match, bits_differ = self.find_closest_permutation(
-                    closest_match, bits_differ,
-                    permutation_num, hash_permutation,
-                )
+            closest_match, bits_differ = self.find_closest_permutation(
+                closest_match, bits_differ,
+                permutation_num, hash_permutation,
+            )
 
             permutations.append(Permutation(
                 bits_rotated=permutation_num,
@@ -106,6 +119,8 @@ class SimHash(models.Model):
             if distance < bits_differ:
                 closest_match, bits_differ = closest_above.sim_hash, distance
 
+            self.check_nearest_reverse(closest_above, distance)
+
         closest_below = (
             Permutation.objects
             .filter(sim_hash__source=self.source)
@@ -121,7 +136,22 @@ class SimHash(models.Model):
             if distance < bits_differ:
                 closest_match, bits_differ = closest_below.sim_hash, distance
 
+            self.check_nearest_reverse(closest_below, distance)
+
         return closest_match, bits_differ
+
+    def check_nearest_reverse(self, related_permutation, distance):
+        related_simhash = related_permutation.sim_hash
+        if related_simhash.id in self.related_needs_save:
+            return
+
+        if distance < related_simhash.bits_differ:
+            related_simhash.bits_differ = distance
+            self.related_needs_save[related_simhash.id] = related_simhash
+            related_simhash.needs_related_check = False
+        else:
+            self.related_needs_save[related_simhash.id] = False
+
 
     def __str__(self):
         return self.guid
