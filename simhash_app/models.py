@@ -36,6 +36,17 @@ class SimHash(models.Model, SimHashSaveMixin):
 
         return response
 
+    def delete(self, using=None, keep_parents=False):
+        # Everyone in self.nearest_reverse will have self.nearest_duplicate == None after deleting
+        # So they need to re-calculate
+
+        needs_recalculate = list(self.nearest_reverse.all())
+        response = super().delete(using=using, keep_parents=keep_parents)
+        for sim_hash in needs_recalculate:
+            sim_hash.save()
+
+        return response
+
     def __str__(self):
         return self.guid
 
