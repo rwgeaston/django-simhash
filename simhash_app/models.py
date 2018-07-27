@@ -5,11 +5,11 @@ from .simhash_save_mixin import SimHashSaveMixin
 
 class SimHash(models.Model, SimHashSaveMixin):
     # Short free text for params of simhash generation.
-    method = models.CharField(max_length=30)
+    method = models.CharField(max_length=30, db_index=True)
 
     # Other system can look up what it sent by this guid. Where this text came from is their problem.
     guid = models.CharField(max_length=36)
-    source = models.CharField(max_length=30)  # We only compare to texts with same source
+    source = models.CharField(max_length=30, db_index=True)  # We only compare to texts with same source
 
     nearest_duplicate = models.ForeignKey(
         "self", blank=True, null=True,
@@ -17,7 +17,7 @@ class SimHash(models.Model, SimHashSaveMixin):
         related_name='nearest_reverse'
     )
     bits_differ = models.IntegerField(blank=True, null=True)  # compared to above duplicate
-    hash = models.BigIntegerField()
+    hash = models.BigIntegerField(db_index=True)
 
     class Meta:
         unique_together = (
@@ -53,5 +53,5 @@ class SimHash(models.Model, SimHashSaveMixin):
 
 class Permutation(models.Model):
     sim_hash = models.ForeignKey(SimHash, on_delete=models.CASCADE, related_name='permutations')
-    hash = models.BigIntegerField()
-    bits_rotated = models.IntegerField()
+    hash = models.BigIntegerField(db_index=True)
+    bits_rotated = models.IntegerField(db_index=True)
