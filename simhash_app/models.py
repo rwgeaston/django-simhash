@@ -25,16 +25,18 @@ class SimHash(models.Model, SimHashSaveMixin):
         )
 
     def save(self, **kwargs):  # pylint: disable=arguments-differ
-        self.permutations_model = Permutation
-        self.new_permutations = []
-        self.related_needs_save = {}
-        if self.needs_related_check:
-            self.new_permutations = self.generate_permutations()
-
+        self.generate_permutations()
         response = super().save(**kwargs)
         self.post_save_related_models_save()
 
         return response
+
+    def generate_permutations(self):
+        self.permutations_model = Permutation
+        self.new_permutations = []
+        self.related_needs_save = {}
+        if self.needs_related_check:
+            self.new_permutations = super(SimHash, self).generate_permutations()
 
     def delete(self, using=None, keep_parents=False):
         # Everyone in self.nearest_reverse will have self.nearest_duplicate == None after deleting

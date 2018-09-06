@@ -4,4 +4,5 @@ from .views import HashViewSet
 
 router = DefaultRouter()
 router.register(r'hashes', HashViewSet)
+
 urlpatterns = router.urls

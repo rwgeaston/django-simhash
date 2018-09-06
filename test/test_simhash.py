@@ -135,3 +135,48 @@ class SimhashTest(TestCase):
         self.assertEqual(hashes[1]['nearest_duplicate'], '1234')
         self.assertEqual(hashes[1]['nearest_reverse'], ['1234'])
         self.assertEqual(hashes[1]['bits_differ'], original_bits_differ)
+
+    def test_get_nearest_without_save(self):
+        initial_response = self.client.post(
+            '/hashes/', format='json',
+            data={
+                'guid': '1234', 'source': 'test',
+                'text': 'this is a moderate length text with enough words we can change to make it similar',
+            }
+        )
+        self.assertEqual(initial_response.status_code, status.HTTP_201_CREATED)
+        self.assertEqual(initial_response.json()['bits_differ'], hash_length + 1)
+        self.assertEqual(initial_response.json()['nearest_duplicate'], None)
+
+        response = self.client.get(
+            '/hashes/get_nearest/', format='json',
+            data={
+                'source': 'test',
+                'text': 'this is a moderate length text with enough words we can change to make it different',
+            }
+        )
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(
+            response.json(),
+            {
+                # serializer will return empty guid even though we didn't provide one, doesn't really matter
+                'guid': '',
+                'hash': -3901868893857517088,
+                'method': 'md5_1st_half_3-grams',
+                'source': 'test',
+                'nearest_duplicate': '1234',
+                'bits_differ': 3,
+            }
+        )
+
+        # Since this was GET not POST, the saved hashes should not have changed
+        response = self.client.get('/hashes/')
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(
+            response.json(),
+            {'count': 1, 'next': None, 'previous': None, 'results': [
+                initial_response.json()
+            ]}
+        )
