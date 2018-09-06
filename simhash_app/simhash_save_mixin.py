@@ -91,6 +91,7 @@ class SimHashSaveMixin():
             .filter(bits_rotated=permutation_num)
             .filter(hash__gt=hash_permutation)
             .order_by('hash')
+            .select_related('sim_hash')
             .first()
         )
 
@@ -108,6 +109,7 @@ class SimHashSaveMixin():
             .filter(bits_rotated=permutation_num)
             .filter(hash__lt=hash_permutation)
             .order_by('-hash')
+            .select_related('sim_hash')
             .first()
         )
 
