@@ -1,4 +1,5 @@
 from django.db import models
+from django.db.transaction import atomic
 
 from simhash import hamming_distance
 
@@ -30,6 +31,7 @@ class SimHashSaveMixin():
     # Permutations which need to be saved after saving this Simhash
     new_permutations = tuple()
 
+    @atomic
     def post_save_related_models_save(self):
         for permutation in self.new_permutations:
             permutation.sim_hash = self
