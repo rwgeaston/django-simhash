@@ -79,6 +79,29 @@ class SimhashTest(TestCase):
         self.assertEqual(response.json()['nearest_duplicate'], '1235')
         self.assertEqual(response.json()['nearest_reverse'], ['1235'])
 
+    def test_post_exact_match(self):
+        response = self.client.post(
+            '/hashes/', format='json',
+            data={
+                'guid': '1234', 'source': 'test2',
+                'text': 'this is a moderate length text with enough words we can change to make it similar',
+            }
+        )
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        self.assertEqual(response.json()['bits_differ'], hash_length + 1)
+        self.assertEqual(response.json()['nearest_duplicate'], None)
+
+        response = self.client.post(
+            '/hashes/', format='json',
+            data={
+                'guid': '1235', 'source': 'test2',
+                'text': 'this is a moderate length text with enough words we can change to make it similar',
+            }
+        )
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        self.assertEqual(response.json()['bits_differ'], 0)
+        self.assertEqual(response.json()['nearest_duplicate'], '1234')
+
     def test_delete_hash(self):
         self.client.post(
             '/hashes/', format='json',
@@ -179,4 +202,27 @@ class SimhashTest(TestCase):
             {'count': 1, 'next': None, 'previous': None, 'results': [
                 initial_response.json()
             ]}
+        )
+
+        # Try GET with exactly same text as is already saved
+        response = self.client.get(
+            '/hashes/get_nearest/', format='json',
+            data={
+                'source': 'test',
+                'text': 'this is a moderate length text with enough words we can change to make it similar',
+            }
+        )
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(
+            response.json(),
+            {
+                # serializer will return empty guid even though we didn't provide one, doesn't really matter
+                'guid': '',
+                'hash': -3613638500525940256,
+                'method': 'md5_1st_half_3-grams',
+                'source': 'test',
+                'nearest_duplicate': '1234',
+                'bits_differ': 0,
+            }
         )

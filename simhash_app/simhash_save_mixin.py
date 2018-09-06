@@ -51,7 +51,8 @@ class SimHashSaveMixin():
             self.__class__.objects
             .filter(source=self.source)
             .filter(method=self.method)
-            .filter(hash=self.hash - highest_value)
+            .filter(hash=self.hash)
+            .exclude(guid=self.guid)
         )
 
         if self.pk:
